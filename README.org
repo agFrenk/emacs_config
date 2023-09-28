@@ -1,0 +1,306 @@
+#+TITLE: My Emacs Config
+#+AUTHOR: SHENK
+#+DESCRIPTION: Agustin Frenkel personal emcas config
+#+STARTUP: showeverything
+#+PROPERTY: header-args :tangle init.el
+
+
+* First Things to load
+early-init
+#+begin_src emacs-lisp :tangle early-init.el
+  (setq user-emacs-directory "~/.local/share/emacs/")
+  (setq user-config-directory "~/.config/emacs/")
+
+  (setq-default startup-redirect-eln-cache user-emacs-directory)
+  (setq-default create-lockfiles nil)
+  (setq-default make-backup-files nil)
+  (setq-default backup-inhibited t)
+  (setq-default auto-save-list-file-prefix (file-name-concat user-emacs-directory "auto-saves/.saves-"))
+  (setq-default custom-file (file-name-concat user-emacs-directory "custom-file"))
+  (setq-default package-user-dir (file-name-concat user-emacs-directory "elpa"))
+  (setq-default url-history-file (file-name-concat user-emacs-directory "url/history"))
+  (setq-default lock-file-name-transforms `(("^\\(.*\\)$" "/tmp/\\1") t))
+  (setq-default auto-save-default nil)
+  (setq-default custom-theme-directory (file-name-concat user-emacs-directory "custom-themes"))
+
+  (setq-default pgtk-wait-for-event-timeout 0)
+#+end_src
+* Settings
+** custom-file
+#+begin_src emacs-lisp
+(when (file-exists-p custom-file)
+  (load custom-file 'noerror 'nomessage))
+#+end_src
+
+** Setup
+Here we setup the `package-archives` variable to include the [[https://melpa.org][MELPA]]
+repository.
+#+begin_src emacs-lisp
+  (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                           ("org" . "https://orgode.org/elpa/")
+                           ("elpa" . "https://elpa.gnu.org/packages/")))
+#+end_src
+** user interface
+#+begin_src emacs-lisp
+  (setq display-line-numbers-type 'visual)
+  (global-display-line-numbers-mode t)
+  (tool-bar-mode 0)
+  (menu-bar-mode 0)
+  (set-face-attribute 'default nil
+                      :font "Berkeley Mono-13")
+  (set-face-attribute 'variable-pitch nil
+                      :font "Ubuntu-13")
+#+end_src
+** Behavioral Settings
+How I prefer emacs to behavior.
+#+begin_src emacs-lisp
+  (fset 'yes-or-no-p 'y-or-n-p)
+  (setq-default indent-tabs-mode nil)
+  (setq-default tab-width 4)
+  (setq inhibit-startup-screen t)
+  (delete-selection-mode t)
+  (electric-pair-mode t)
+  (add-hook 'before-save-hook 'delete-trailing-whitespace)
+  (setq global-auto-revert-non-file-buffers t)
+  (global-auto-revert-mode t)
+  (setq c-default-style "stroustrup")
+  (xterm-mouse-mode t)
+  (setq native-comp-async-report-warnings-errors nil)
+  (context-menu-mode t)
+  (setq mouse-drag-and-drop-region-cross-program t)
+#+end_src
+*** avoid beeping
+#+begin_src emacs-lisp
+  (setq visible-bell t)
+  (setq ring-bell-function 'ignore)
+#+end_src
+*** insert spaces in minibuffer
+#+begin_src emacs-lisp
+  (define-key minibuffer-local-completion-map (kbd "SPC") nil)
+#+end_src
+*** disable C-z suspending Emacs
+#+begin_src emacs-lisp
+  (when (display-graphic-p)
+  (global-unset-key (kbd "C-z"))
+  (global-unset-key (kbd "C-x C-z")))
+#+end_src
+** ShortCuts
+*** Save all C-x S
+#+begin_src emacs_lisp
+(defun my/save-all ()
+    "Save all buffers without prompt."
+    (interactive)
+    (let ((modified-count
+           (length (cl-loop for buf in (buffer-list)
+                            when (and (buffer-file-name buf) (buffer-modified-p buf))
+                            collect buf))))
+        (save-excursion
+            (save-some-buffers t)
+            (message "%d buffer(s) saved" modified-count))))
+(global-set-key (kbd "C-x S") 'my/save-all)
+#+end_src
+* Smooth Scrolling
+Make emacs scroll smoothly with a mouse, touchpad, and scroll keys.
+#+begin_src emacs-lisp
+  (setq-default scroll-conservatively 10000)
+  (setq-default scroll-margin 0)
+
+  (setq pixel-scroll-precision-use-momentum t)
+  (setq pixel-scroll-precision-interpolate-mice t)
+  (setq pixel-scroll-precision-large-scroll-height 10.0)
+  (setq pixel-scroll-precision-interpolate-page t)
+  (pixel-scroll-precision-mode t)
+
+  (global-set-key (kbd "C-v") 'pixel-scroll-interpolate-down)
+  (global-set-key (kbd "M-v") 'pixel-scroll-interpolate-up)
+#+end_src
+
+* Packages
+** wich-key
+#+begin_src emacs-lisp
+  (use-package which-key
+  :ensure t
+  :custom
+  (which-key-idle-delay 0.2)
+  (setq which-key-popup-type 'minibuffer)
+  :config
+  (which-key-mode))
+#+end_src
+** All The Icons
+#+begin_src emacs-lisp
+  (use-package all-the-icons
+    :ensure t)`
+#+end_src
+
+** Corfu
+Corfu provides a quick popup that displays completion candidates for
+whatever it is you’re currently typing. It can also show documentation
+next to the completions buffer for the symbol you’re currently
+selecting. Goes well with Orderless.
+#+begin_src emacs-lisp
+  (use-package corfu
+  :ensure t
+  :custom
+  (corfu-auto t)
+  (corfu-auto-delay 0.2)
+  (corfu-auto-prefix 0)
+  (corfu-min-width 60)
+  (corfu-popupinfo-delay 0.5)
+  (corfu-preview-current nil)
+  (corfu-preselect 'prompt)
+  (corfu-quit-no-match t)
+  (corfu-on-exact-match 'quit)
+  (corfu-cycle t)
+  :config
+  (corfu-popupinfo-mode)
+  (global-corfu-mode))
+#+end_src
+** Org
+*** Org Roam
+#+begin_src emacs-lisp
+  (setq zettelkasten-paths-alist '(("Main" . "~/Documents/Org_roam_wiki/")
+                                   ("NesWiki" . "~/Documents/NesWiki/")))
+
+  (defun switch-zettelkasten ()
+    (interactive)
+    (let* ((keys (mapcar #'car zettelkasten-paths-alist))
+           (prompt (format "Select Zettelkasten:"))
+           (key (completing-read prompt keys))
+           (chosen-zettelkasten-path (cdr (assoc key zettelkasten-paths-alist))))
+      (setq org-roam-directory chosen-zettelkasten-path)
+      (setq org-roam-db-location (file-name-concat chosen-zettelkasten-path "org-roam.db"))
+      (org-roam-db-sync)))
+
+  (use-package org-roam
+    :ensure t
+    :custom
+    (org-roam-directory (cdr (assoc-string "Main" zettelkasten-paths-alist)))
+    (org-roam-db-location (file-name-concat (cdr (assoc-string "Main" zettelkasten-paths-alist)) "org-roam.db"))
+    (org-roam-capture-templates '(("d" "default" plain "%?"
+                                    :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+                                                       "#+title: ${title}\n#+filetags: :Unfinished:")
+                                    :unnarrowed t)))
+    :bind
+    (("C-c n f" . org-roam-node-find)
+     ("C-c n s" . switch-zettelkasten)
+     (:map org-mode-map
+           (("C-c n i" . org-roam-node-insert)
+            ("C-c n t" . org-roam-tag-add)
+            ("C-c n a" . org-roam-alias-add)
+            ("C-c n b" . org-roam-buffer-toggle))))
+    :config
+    (org-roam-db-autosync-mode t))
+
+  (use-package org-roam-ui
+    :ensure t
+    :custom
+    (org-roam-ui-open-on-start nil)
+    (org-roam-ui-sync-theme nil))
+#+end_src
+*** Org Superstar
+#+begin_src emacs-lisp
+  (use-package org-superstar
+    :ensure t
+    :custom
+    (org-superstar-item-bullet-alist '((42 . 8226)
+                                       (43 . 8226)
+                                       (45 . 8211)))
+    :config
+    (add-hook 'org-mode-hook 'org-superstar-mode)
+    (org-superstar-mode t))
+#+end_src
+*** Org Fragtog
+Org Fragtog allows me to seamlessly edit latex previews in org
+documents whenever the point is over them.
+#+begin_src emacs-lisp
+  (use-package org-fragtog
+    :ensure t
+    :config
+    (add-hook 'org-mode-hook 'org-fragtog-mode))
+#+end_src
+*** Org Mode
+#+begin_src emacs-lisp
+  (require 'org-agenda)
+  (require 'org-tempo)
+  (setq org-startup-indented t)
+  (setq org-pretty-entities t)
+  (setq org-hide-emphasis-markers t)
+  (setq org-startup-with-inline-images t)
+  (setq org-preview-latex-default-process 'dvisvgm)
+  (setq org-preview-latex-image-directory "~/.cache/ltximg")
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.4))
+  (setq org-startup-with-latex-preview t)
+  (add-hook 'org-mode-hook 'auto-fill-mode)
+  ;(add-hook 'org-mode-hook 'flyspell-mode)
+
+  ;; (org-block :background ,BACKGROUND_2 :extend t)
+  ;; (org-block-begin-line :background ,BACKGROUND_2
+  ;;                       :foreground ,COMMENT
+  ;;                       :slant italic
+  ;;                       :extend t)
+  ;; (org-block-end-line :background ,BACKGROUND_2
+  ;;                     :foreground ,COMMENT
+  ;;                     :slant italic
+  ;;                     :extend t)
+  ;; (org-hide :foreground ,COMMENT)
+  #+end_src
+**** Org mode headings colors and indentation
+#+begin_src emacs-lisp
+  (set-face-attribute
+   'org-level-1 nil :height 1.5 :weight 'bold)
+  (set-face-attribute 'org-level-2 nil :height 1.3 :weight 'bold)
+  (set-face-attribute 'org-level-3 nil :height 1.1 :weight 'bold)
+  (set-face-attribute 'org-level-4 nil :weight 'normal)
+  (set-face-attribute 'org-level-5 nil :weight 'normal)
+  (set-face-attribute 'org-level-6 nil :weight 'normal)
+  (set-face-attribute 'org-level-7 nil :weight 'normal)
+  (set-face-attribute 'org-level-8 nil :weight 'normal)
+#+end_src
+
+** Dashboard
+#+begin_src emacs-lisp
+(use-package dashboard
+  :ensure t
+  :after all-the-icons
+  :custom
+  (dashboard-set-file-icons t)
+  (dashboard-set-heading-icons t)
+  (dashboard-banner-logo-title "TitoMacs")
+  (dashboard-center-content t)
+  (dashboard-show-shortcuts t)
+  (dashboard-projects-backend 'project-el)
+  (dashboard-items '((recents . 5) (projects . 5) (bookmarks . 5)))
+  (dashboard-startup-banner 'logo)
+  (dashboard-set-navigator t)
+  (dashboard-navigator-buttons
+   `(((,(all-the-icons-octicon "file-text" :height 1.0 :v-adjust 0.0)
+       "Emacs Config"
+       "Open the Emacs config file"
+       (lambda (&rest _)
+         (find-file (file-name-concat user-config-directory "config.org")))))))
+  (dashboard-projects-switch-function 'project-open)
+  :config
+  (dashboard-setup-startup-hook))
+#+end_src
+** Vertico
+Vertico provides a performant and minimalistic vertical completion UI
+based on the default completion system. It makes it really easy to
+search for functions or variables in the minibuffer. Goes well with
+[[Orderless]].
+#+begin_src emacs-lisp
+  (use-package vertico
+    :ensure t
+    :config
+    (vertico-mode)
+    (vertico-mouse-mode))
+#+end_src
+
+** treemacs
+#+begin_src emacs-lisp
+    (use-package treemacs
+      :ensure t
+      :config
+      (with-eval-after-load 'treemacs
+        (define-key treemacs-mode-map [mouse-1] #'treemacs-single-click-expand-action))
+      (treemacs-git-mode 'deferred))
+#+end_src
