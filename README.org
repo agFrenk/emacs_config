@@ -1,3 +1,4 @@
+
 #+TITLE: My Emacs Config
 #+AUTHOR: SHENK
 #+DESCRIPTION: Agustin Frenkel personal emcas config
@@ -304,4 +305,11 @@ search for functions or variables in the minibuffer. Goes well with
       (with-eval-after-load 'treemacs
         (define-key treemacs-mode-map [mouse-1] #'treemacs-single-click-expand-action))
       (treemacs-git-mode 'deferred))
+#+end_src
+** theme
+#+begin_src emacs-lisp
+  (use-package timu-rouge-theme
+  :ensure t
+  :config
+  (load-theme 'timu-rouge t))
 #+end_src
