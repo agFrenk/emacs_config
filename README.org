@@ -52,7 +52,7 @@ repository.
   (set-face-attribute 'variable-pitch nil
                       :font "Ubuntu-13")
 #+end_src
-** Behavioral Settings
+x** Behavioral Settings
 How I prefer emacs to behavior.
 #+begin_src emacs-lisp
   (fset 'yes-or-no-p 'y-or-n-p)
@@ -210,6 +210,12 @@ selecting. Goes well with Orderless.
     (add-hook 'org-mode-hook 'org-superstar-mode)
     (org-superstar-mode t))
 #+end_src
+*** Org Agenda
+#+begin_src emacs-lisp
+(with-eval-after-load 'org
+  (setq org-agenda-files '("~/Documents/Org_roam_wiki/agenda.org")))
+#+end_src
+
 *** Org Fragtog
 Org Fragtog allows me to seamlessly edit latex previews in org
 documents whenever the point is over them.
@@ -308,8 +314,22 @@ search for functions or variables in the minibuffer. Goes well with
 #+end_src
 ** theme
 #+begin_src emacs-lisp
-  (use-package timu-rouge-theme
+  (use-package dracula-theme
   :ensure t
   :config
-  (load-theme 'timu-rouge t))
+  (load-theme 'dracula t))
+#+end_src
+** Orderless
+This package provides an orderless completion style that divides the
+pattern into space-separated components, and matches candidates that
+match all of the components in any order. Each component can match in
+any one of several ways: literally, as a regexp, as an initialism, in
+the flex style, or as multiple word prefixes. By default, regexp and
+literal matches are enabled.
+#+begin_src emacs-lisp
+(use-package orderless
+  :ensure t
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles basic partial-completion)))))
 #+end_src
