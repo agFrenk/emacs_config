@@ -5,13 +5,11 @@
 #+STARTUP: showeverything
 #+PROPERTY: header-args :tangle init.el
 
-
 * First Things to load
 early-init
 #+begin_src emacs-lisp :tangle early-init.el
   (setq user-emacs-directory "~/.local/share/emacs/")
-  (setq user-config-directory "~/.config/emacs/")
-
+  (setq user-config-directory "~/.config/emacs/"):
   (setq-default startup-redirect-eln-cache user-emacs-directory)
   (setq-default create-lockfiles nil)
   (setq-default make-backup-files nil)
@@ -23,7 +21,6 @@ early-init
   (setq-default lock-file-name-transforms `(("^\\(.*\\)$" "/tmp/\\1") t))
   (setq-default auto-save-default nil)
   (setq-default custom-theme-directory (file-name-concat user-emacs-directory "custom-themes"))
-
   (setq-default pgtk-wait-for-event-timeout 0)
 #+end_src
 * Settings
@@ -310,6 +307,7 @@ documents whenever the point is over them.
 #+begin_src emacs-lisp
 (with-eval-after-load 'org
   (setq org-agenda-files '("~/Documents/Org_roam_wiki/gcal.org")))
+ #+end_src
 *** Org tempo
 #+begin_src emacs-lisp
   (require 'org-tempo)
@@ -402,5 +400,3 @@ literal matches are enabled.
     (global-set-key (kbd "C-c b") 'xref-go-back)
     (global-set-key (kbd "C-c R") 'xref-find-references))
 #+end_src
-
-(require 'org-tempo)
