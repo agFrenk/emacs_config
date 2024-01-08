@@ -38,7 +38,7 @@ Here we setup the `package-archives` variable to include the [[https://melpa.org
 repository.
 #+begin_src emacs-lisp
   (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                           ("org" . "https://orgode.org/elpa/")
+                           ("org" . "https://orgmode.org/elpa/")
                            ("elpa" . "https://elpa.gnu.org/packages/")))
 #+end_src
 ** user interface
@@ -247,7 +247,7 @@ even if the popup is present.
     (org-roam-ui-open-on-start nil)
     (org-roam-ui-sync-theme nil))
 #+end_src
-*** Org Superstar
+*** Orgperstar
 #+begin_src emacs-lisp
   (use-package org-superstar
     :ensure t
@@ -310,6 +310,9 @@ documents whenever the point is over them.
 #+begin_src emacs-lisp
 (with-eval-after-load 'org
   (setq org-agenda-files '("~/Documents/Org_roam_wiki/gcal.org")))
+*** Org tempo
+#+begin_src emacs-lisp
+  (require 'org-tempo)
 #+end_src
 
 ** Dashboard
@@ -381,3 +384,23 @@ literal matches are enabled.
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles basic partial-completion)))))
 #+end_src
+** Eglot
+#+begin_src emacs-lisp
+  (use-package eglot
+    :ensure t
+    :custom
+    (eglot-autoshutdown t)
+    (eglot-sync-connect 0) ; performance
+    (eglot-events-buffer-size 0) ; performance
+    :config
+    (fset #'jsonrpc--log-event #'ignore) ; performance
+    (add-hook 'prog-mode-hook 'eglot-ensure)
+    (add-hook 'focus-out-hook 'garbage-collect) ; performance
+    (define-key eglot-mode-map (kbd "C-c r") 'eglot-rename)
+    (global-set-key (kbd "C-c d") 'xref-find-definitions)
+    (global-set-key (kbd "C-c h") 'eldoc)
+    (global-set-key (kbd "C-c b") 'xref-go-back)
+    (global-set-key (kbd "C-c R") 'xref-find-references))
+#+end_src
+
+(require 'org-tempo)
