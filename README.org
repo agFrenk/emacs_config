@@ -85,7 +85,7 @@ How I prefer emacs to behavior.
 #+end_src
 ** ShortCuts
 *** Save all C-x S
-#+begin_src emacs_lisp
+#+begin_src emacs-lisp
 (defun my/save-all ()
     "Save all buffers without prompt."
     (interactive)
@@ -96,8 +96,61 @@ How I prefer emacs to behavior.
         (save-excursion
             (save-some-buffers t)
             (message "%d buffer(s) saved" modified-count))))
-(global-set-key (kbd "C-x S") 'my/save-all)
+;;(global-set-key (kbd "C-x v d") 'my/save-all)
 #+end_src
+*** fecha
+#+begin_src emacs-lisp
+(defun insertar-rutina-diaria (fecha-input)
+  "Inserta una rutina diaria con la fecha especificada, o pide una si no se proporciona."
+  (interactive (list (read-string "Ingrese la fecha (formato AAAA-MM-DD): ")))
+  (let* ((fecha (parse-time-string fecha-input))
+         (anio (nth 5 fecha))
+         (mes (nth 4 fecha))
+         (dia (nth 3 fecha))
+         (fecha-formateada (encode-time 0 0 0 dia mes anio))
+         (dia-semana (format-time-string "%A" fecha-formateada))
+         (dia-semana-es (translate-day-to-spanish dia-semana)))
+    (insert (format "*** %s, %s [/]\n" fecha-input dia-semana-es))
+    (insert "- [ ] Lavarse la cara a la mañana\n")
+    (insert "- [ ] Lavarse la cara a la tarde\n")
+    (insert "- [ ] Protector solar a la mañana\n")
+    (insert "- [ ] Protector solar a la tarde\n")))
+
+(defun translate-day-to-spanish (day)
+  "Traduce el día de la semana del inglés al español."
+  (cond ((string= day "Monday") "Lunes")
+        ((string= day "Tuesday") "Martes")
+        ((string= day "Wednesday") "Miércoles")
+        ((string= day "Thursday") "Jueves")
+        ((string= day "Friday") "Viernes")
+        ((string= day "Saturday") "Sábado")
+        ((string= day "Sunday") "Domingo")
+        (t day))) ; Por defecto, devuelve el día como está si no coincide.
+
+(defun buscar-e-insertar-rutina-con-siguiente-fecha ()
+  "Busca la fecha más reciente en formato AAAA-MM-DD hacia arriba y llama a insertar-rutina-diaria con la siguiente fecha en la posición actual del cursor."
+  (interactive)
+  (let ((fecha-regex "\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)")
+        fecha-siguiente-str)
+    (save-excursion
+      (if (re-search-backward fecha-regex nil t)
+          (let* ((fecha-str (match-string 1))
+                 (fecha (parse-time-string fecha-str))
+                 (anio (nth 5 fecha))
+                 (mes (nth 4 fecha))
+                 (dia (nth 3 fecha))
+                 (fecha-siguiente (encode-time 0 0 0 (1+ dia) mes anio)))
+            (setq fecha-siguiente-str (format-time-string "%Y-%m-%d" fecha-siguiente)))
+        (message "No se encontró ninguna fecha hacia arriba.")))
+    (when fecha-siguiente-str
+      (insertar-rutina-diaria fecha-siguiente-str))))
+
+(global-set-key (kbd "C-c n d") 'insertar-rutina-diaria)
+(global-set-key (kbd "C-c n n") 'buscar-e-insertar-rutina-con-siguiente-fecha)
+
+#+end_src
+
+
 * Smooth Scrolling
 Make emacs scroll smoothly with a mouse, touchpad, and scroll keys.
 #+begin_src emacs-lisp
