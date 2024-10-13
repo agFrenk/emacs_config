@@ -361,6 +361,13 @@ documents whenever the point is over them.
 #+begin_src emacs-lisp
   (require 'org-tempo)
 #+end_src
+*** Org encryption
+#+begin_src emacs-lisp
+  (require 'epa-file)
+  (epa-file-enable)
+  (setq epa-file-select-keys nil)
+  (setq epa-file-encrypt-to nil)
+#+end_src
 *** TODO My daily tracker
 #+begin_src emacs-lisp
   (load "/home/agus/Projects/emacs_daily_habits/daily.el")
