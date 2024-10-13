@@ -24,11 +24,6 @@ early-init
   (setq-default pgtk-wait-for-event-timeout 0)
 #+end_src
 * Settings
-** custom-file
-#+begin_src emacs-lisp
-(when (file-exists-p custom-file)
-  (load custom-file 'noerror 'nomessage))
-#+end_src
 
 ** Setup
 Here we setup the `package-archives` variable to include the [[https://melpa.org][MELPA]]
@@ -368,7 +363,7 @@ documents whenever the point is over them.
 #+end_src
 *** TODO My daily tracker
 #+begin_src emacs-lisp
-  (load "/home/agus/projects/emacs_daily_habits/daily.el")
+  (load "/home/agus/Projects/emacs_daily_habits/daily.el")
 #+end_src
 
 ** Dashboard
