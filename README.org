@@ -1,4 +1,5 @@
 
+
 #+TITLE: My Emacs Config
 #+AUTHOR: SHENK
 #+DESCRIPTION: Agustin Frenkel personal emcas config
@@ -6,10 +7,30 @@
 #+PROPERTY: header-args :tangle init.el
 
 * First Things to load
-early-init
+
+** paths cofing
+
 #+begin_src emacs-lisp :tangle early-init.el
-  (setq user-emacs-directory "~/.local/share/emacs/")
-  (setq user-config-directory "~/.config/emacs/"):
+
+    ;; Si prefieres forzar manualmente:
+    (setq running-os "windows")
+
+    ;; 2. Asignar user-emacs-directory y user-config-directory
+    (cond
+     ((string= running-os "linux")
+      (setq user-emacs-directory   "~/.local/share/emacs/"
+            user-config-directory  "~/.config/emacs/"))
+     ((string= running-os "windows")
+      ;; aquí usamos USERPROFILE, pero puedes usar APPDATA si prefieres:
+      (setq user-emacs-directory   "~/.config/emacs/"
+            user-config-directory "~/.emacs.d/"
+            org-wiki-directory "C:\\Users\\agust\\Nextcloud\\org_roam_wiki"))
+     (t
+      (error "running-os debe ser 'linux o 'windows; valor actual: %s" running-os)))
+
+#+end_src
+** seteo de resto de variables
+#+begin_src emacs-lisp :tangle early-init.el
   (setq-default startup-redirect-eln-cache user-emacs-directory)
   (setq-default create-lockfiles nil)
   (setq-default make-backup-files nil)
@@ -190,7 +211,7 @@ Define custom functions to scroll only half a page up or down
 ** All The Icons
 #+begin_src emacs-lisp
   (use-package all-the-icons
-    :ensure t)`
+    :ensure t)
 #+end_src
 
 ** Corfu
@@ -254,8 +275,13 @@ even if the popup is present.
 ** Org
 *** Org Roam
 #+begin_src emacs-lisp
-  (setq zettelkasten-paths-alist '(("Main" . "~/Documents/Org_roam_wiki/")
-                                   ("NesWiki" . "~/Documents/NesWiki/")))
+  (defvar zettelkasten-paths-alist nil
+  "Alist of named Zettelkasten root directories.")
+
+  (setq zettelkasten-paths-alist
+      (list
+       (cons "Main"  org-wiki-directory)
+       (cons "NesWiki" "C:/Users/agust/Nextcloud/org_roam_wiki")))
 
   (defun switch-zettelkasten ()
     (interactive)
@@ -354,8 +380,8 @@ documents whenever the point is over them.
 #+end_src
 *** Org Agenda
 #+begin_src emacs-lisp
-(with-eval-after-load 'org
-  (setq org-agenda-files '("~/Documents/Org_roam_wiki/agenda.org")))
+(setq org-agenda-files
+      '("C:\\Users\\agust\\Nextcloud\\org_roam_wiki\\agenda.org"))
  #+end_src
 *** Org tempo
 #+begin_src emacs-lisp
@@ -369,11 +395,10 @@ documents whenever the point is over them.
   (setq epa-file-encrypt-to nil)
 #+end_src
 *** TODO My daily tracker
-#+begin_src emacs-lisp
-  (load "/home/agus/Projects/emacs_daily_habits/daily.el")
-#+end_src
+
 
 ** Dashboard
+
 #+begin_src emacs-lisp
   (use-package dashboard
     :ensure t
@@ -385,16 +410,17 @@ documents whenever the point is over them.
     (dashboard-center-content t)
     (dashboard-show-shortcuts t)
     (dashboard-projects-backend 'project-el)
-    ;
     (dashboard-items '((recents . 5) (projects . 5) (bookmarks . 5)))
-    (dashboard-startup-banner "~/.config/emacs/shenk.png")
+    (dashboard-startup-banner (concat user-config-directory "shenk.png"))
     (dashboard-set-navigator t)
     (dashboard-navigator-buttons
-      `(((,(all-the-icons-octicon "file-text" :height 1.0 :v-adjust 0.0)
-          "Emacs Config"
-          "Open the Emacs config file"
-          (lambda (&rest _)
-            (find-file (file-name-concat user-config-directory "README.org")))))))
+     `((( ""
+       "Emacs Config"
+       "Open the Emacs config file"
+       ,(lambda (&rest _)
+           (interactive)
+           (find-file
+            (expand-file-name "README.org" user-config-directory)))))))
     (dashboard-projects-switch-function 'project-open)
     :config
     (dashboard-setup-startup-hook))
@@ -412,15 +438,6 @@ search for functions or variables in the minibuffer. Goes well with
     (vertico-mouse-mode))
 #+end_src
 
-** treemacs
-#+begin_src emacs-lisp
-    (use-package treemacs
-      :ensure t
-      :config
-      (with-eval-after-load 'treemacs
-        (define-key treemacs-mode-map [mouse-1] #'treemacs-single-click-expand-action))
-      (treemacs-git-mode 'deferred))
-#+end_src
 ** theme
 #+begin_src emacs-lisp
   (use-package dracula-theme
