@@ -1,5 +1,3 @@
-
-
 #+TITLE: My Emacs Config
 #+AUTHOR: SHENK
 #+DESCRIPTION: Agustin Frenkel personal emcas config
@@ -12,14 +10,15 @@
 
 #+begin_src emacs-lisp :tangle early-init.el
 
-    ;; Si prefieres forzar manualmente:
-    (setq running-os "windows")
+    ;; Detectar el sistema operativo automáticamente:
+    (setq running-os (if (eq system-type 'windows-nt) "windows" "linux"))
 
     ;; 2. Asignar user-emacs-directory y user-config-directory
     (cond
      ((string= running-os "linux")
       (setq user-emacs-directory   "~/.local/share/emacs/"
-            user-config-directory  "~/.config/emacs/"))
+            user-config-directory  "~/.emacs.d/"
+            org-wiki-directory "~/OpenCloud/org_roam_wiki/"))
      ((string= running-os "windows")
       ;; aquí usamos USERPROFILE, pero puedes usar APPDATA si prefieres:
       (setq user-emacs-directory   "~/.config/emacs/"
@@ -114,6 +113,16 @@ How I prefer emacs to behavior.
             (message "%d buffer(s) saved" modified-count))))
 ;;(global-set-key (kbd "C-x v d") 'my/save-all)
 #+end_src
+*** Insert haskell codeblock C-c h
+#+begin_src emacs-lisp
+(defun insertar-bloque-haskell ()
+  "Inserta un bloque de código Haskell en Org-mode."
+  (interactive)
+  (insert "#+begin_src haskell :results output\n  :{\n  :}\n\n#+end_src\n"))
+
+(global-set-key (kbd "C-c h") 'insertar-bloque-haskell)
+#+end_src
+
 *** fecha
 #+begin_src emacs-lisp
 (defun insertar-rutina-diaria (fecha-input)
@@ -281,7 +290,7 @@ even if the popup is present.
   (setq zettelkasten-paths-alist
       (list
        (cons "Main"  org-wiki-directory)
-       (cons "NesWiki" "C:/Users/agust/Nextcloud/org_roam_wiki")))
+       (cons "NesWiki" "~/Documents/NesWiki/")))
 
   (defun switch-zettelkasten ()
     (interactive)
@@ -380,8 +389,8 @@ documents whenever the point is over them.
 #+end_src
 *** Org Agenda
 #+begin_src emacs-lisp
-(setq org-agenda-files
-      '("C:\\Users\\agust\\Nextcloud\\org_roam_wiki\\agenda.org"))
+(with-eval-after-load 'org
+  (setq org-agenda-files (list (file-name-concat org-wiki-directory "agenda.org"))))
  #+end_src
 *** Org tempo
 #+begin_src emacs-lisp
@@ -394,9 +403,22 @@ documents whenever the point is over them.
   (setq epa-file-select-keys nil)
   (setq epa-file-encrypt-to nil)
 #+end_src
-*** TODO My daily tracker
+*** My daily tracker
+#+begin_src emacs-lisp
+  (load (file-name-concat user-config-directory "daily.el"))
+#+end_src
+*** Org haskell
+#+begin_src emacs-lisp
+  (use-package haskell-mode
+    :ensure t)
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((haskell . t)))
 
-
+  (use-package hindent
+    :ensure t
+    :hook (haskell-mode . hindent-mode))
+#+end_src
 ** Dashboard
 
 #+begin_src emacs-lisp
@@ -459,28 +481,28 @@ literal matches are enabled.
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles basic partial-completion)))))
 #+end_src
-** Eglot
-#+begin_src emacs-lisp
-  (use-package eglot
-    :ensure t
-    :custom
-    (eglot-autoshutdown t)
-    (eglot-sync-connect 0) ; performance
-    (eglot-events-buffer-size 0) ; performance
-    :config
-    (fset #'jsonrpc--log-event #'ignore) ; performance
-    (add-hook 'prog-mode-hook 'eglot-ensure)
-    (add-hook 'focus-out-hook 'garbage-collect) ; performance
-    (define-key eglot-mode-map (kbd "C-c r") 'eglot-rename)
-    (global-set-key (kbd "C-c d") 'xref-find-definitions)
-    (global-set-key (kbd "C-c h") 'eldoc)
-    (global-set-key (kbd "C-c b") 'xref-go-back)
-    (global-set-key (kbd "C-c R") 'xref-find-references))
-#+end_src
+# ** Eglot
+# #+begin_src emacs-lisp
+#   (use-package eglot
+#     :ensure t
+#     :custom
+#     (eglot-autoshutdown t)
+#     (eglot-sync-connect 0) ; performance
+#     (eglot-events-buffer-size 0) ; performance
+#     :config
+#     (fset #'jsonrpc--log-event #'ignore) ; performance
+#     (add-hook 'prog-mode-hook 'eglot-ensure)
+#     (add-hook 'focus-out-hook 'garbage-collect) ; performance
+#     (define-key eglot-mode-map (kbd "C-c r") 'eglot-rename)
+#     (global-set-key (kbd "C-c d") 'xref-find-definitions)
+#     (global-set-key (kbd "C-c h") 'eldoc)
+#     (global-set-key (kbd "C-c b") 'xref-go-back)
+#     (global-set-key (kbd "C-c R") 'xref-find-references))
+# #+end_src
 
-** Treesitter
-#+begin_src emacs-lisp
-  (use-package tree-sitter
-    :ensure t
-    :hook (prog-mode . tree-sitter-hl-mode))
-#+end_src
+# ** Treesitter
+# #+begin_src emacs-lisp
+#   (use-package tree-sitter
+#     :ensure t
+#     :hook (prog-mode . tree-sitter-hl-mode))
+# #+end_src
